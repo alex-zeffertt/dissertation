@@ -1,0 +1,113 @@
+Qualitative
+-----------
+
+systematic literature review
+
+ - what are the causes for transition
+ - this is what we need to include in the model
+ - may get evidence for numbers, may not
+ - what are plausible params if not
+
+discussion
+ - NOT about verisimmilitude
+ - about plausible processes
+ - it's to learn and explore relationships
+ - "framing of model"
+ - what do we use the model for?
+ - talk about how I could get the data I need
+ - WARNING assumption here
+ - WARNING patchy data here
+
+Richard Twine - veganism
+  book chapter - negotiating transitions
+Veganism Ethics and Lifestyle - portsmouth uni
+
+"Connected" book Fowler and Chritakis
+ - you are more likely to be obese if your friends friends friends are obese
+ - is this an emergent feature of model
+
+
+Practices (football, cooking)
+
+ - images
+ - skills
+ - stuff
+
+Create a map
+
+
+From Van Dam:
+
+    Small-World Networks Discovered more recently, small-world networks
+    start with a regularly structured space and randomly replace a small
+    number of the local connections with long distance connections. After
+    a very small number of rewirings, the network takes on the short
+    average path length characteristic, and fast global convergence times,
+    of soups without sacriﬁcing the high clustering coefﬁcient, and
+    efﬁcient resource use, of spaces. Despite being discovered quite
+    recently, small-world networks have been subject to much
+    investigation, especially as they relate to regular and random
+    networks. By including both a short average path length and a high
+    clustering coefﬁcient, small-world networks are more realistic than
+    either soups or spaces, but are more difﬁcult to analyze
+    statistically.
+
+    Agent-Based Modelling of Socio-Technical Systems, edited by Dam, Koen
+    H. van, et al., Springer Netherlands, 2012. ProQuest Ebook Central,
+    http://ebookcentral.proquest.com/lib/uea/detail.action?docID=994247.
+
+From Van Dam
+
+    Scale-Free Networks Scale-free networks have high clustering
+    coefﬁcients and short average connection length, as do small-world
+    networks, but they also have “hubs” that can dramatically speed up the
+    timescales in the model. These hubs stem from a power law degree
+    distribution, 29 which distributes connections, probability to
+    interact, or popularity among the agents such that a very few agents
+    are highly connected while the vast majority have few connections,
+    matching real-life human social networks. The scale-free networks show
+    sharp transitions toward convergence, as do real life populations, and
+    they reach convergence almost as quickly as soups, while using memory
+    resources efﬁciently. Other structures can be converted to a
+    scale-free network by incorporating growth with some sort of
+    preferential attachment strategy, so scale-free networks can be used
+    in dynamic structure models. While scale-free networks have
+    importantly realistic traits and behaviours, the presence of hubs can
+    introduce problems with robustness and instability if not well
+    considered. For example, if only a few agents are chosen at random to
+    be active each turn, then the overwhelmingly numerous non-hub agents
+    will tend to be selected. If those agents then select one of their
+    neighbours as the recipient of the action (reactive agent), then the
+    hub-agents will tend to be chosen as the recipient quite often,
+    because they are in the set of neighbours of almost every other
+    agent. Thus, depending on the action taken, the hub agents will have
+    experiences and behaviours different than other agents, even if they
+    share all the same decision rules, and may display quite different
+    behaviour. It is not unrealistic, but the implications are not trivial
+    as the divergent behaviour may speed up convergence, promote
+    robustness, or spread instability, depending on how the model works.
+
+    Agent-Based Modelling of Socio-Technical Systems, edited by Dam, Koen
+    H. van, et al., Springer Netherlands, 2012. ProQuest Ebook Central,
+    http://ebookcentral.proquest.com/lib/uea/detail.action?docID=994247.
+
+
+Simple geometric models
+->
+Small world models
+->
+Scale free models
+
+
+* mathematical formalism
+** choose between several
+
+review types of CA
+
+* classic 1 or 2D
+* P-CA
+* graph CA
+* directed/undirected?
+* reconfigurable-graph CA
+ - do people change friendship groups as a result of changing dietary habits (Malecki K, 2017)
+ - need data
