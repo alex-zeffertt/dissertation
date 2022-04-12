@@ -1,0 +1,7 @@
+This directory documents the steps taken to create ./NorthJutlandBoundary.pickle
+
+1. Download ./gadm36_DNK_1_sf.rds from https://gadm.org/download_country_v3.html
+
+2. Run ./NorthJutlandBoundary.R to process from gadm36_DNK_1_sf.rds into a 28 ./NorthJutlandPolygon<N>.csv files
+
+3. Run ./NorthJutlandBoundary.py to create ./NorthJutlandBoundary.pickle
