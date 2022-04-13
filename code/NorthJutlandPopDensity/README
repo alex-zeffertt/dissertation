@@ -19,5 +19,5 @@ See ../NorthJutlandBoundary/README
 Visualization
 -------------
 
-Run ./graph.py after creating ./NorthJutlandPopDensityGridded.pickle to visualize
+Run ./plot.py after creating ./NorthJutlandPopDensityGridded.pickle to visualize
 using matplotlib

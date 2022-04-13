@@ -21,11 +21,15 @@ z = dat[:,2]
 
 # Read in polygons for 'North Jutland'
 polygons = pickle.loads(open('../NorthJutlandBoundary/NorthJutlandBoundary.pickle','rb').read())
-
+polygons.sort(key=lambda p:p.area, reverse=True)
+              
 # Function to determine whether point (x[i],y[i]) is in North Jutland
 def isNorthJutland(coords):
     point = Point(*coords)
-    return True in ( poly.contains(point) for poly in polygons )
+    for poly in polygons:
+        if poly.contains(point):
+            return True
+    return False
 
 # Clip the pop density data to North Jutland
 # x is longitude/degress
@@ -45,6 +49,11 @@ y_min, y_max, y_range = y.min(), y.max(), y.max() - y.min()
 x_grid, y_grid = np.mgrid[x_min:x_max:1000j, y_min:y_max:1000j]
 z_grid = griddata((x,y), z, (x_grid, y_grid), fill_value=0.,method='linear')
 
+# Clip to North Jutland
+for i,j in zip(*z_grid.nonzero()):
+    if not isNorthJutland((x_grid[i,j],y_grid[i,j])):
+        z_grid[i,j] = 0.
+
 # Work out grid areas
 R_km = 6371 # Radius of earth
 dx_deg = x_grid[1,0]-x_grid[0,0]
@@ -55,7 +64,7 @@ dA_km2 = dx_km*dy_km
 
 # Rescale z_grid to be known population density in people per km2
 pop = 590322 # From http://www.statistikbanken.dk/FOLK1, April 2021
-z_grid = (pop*z_grid/sum(z_grid.flatten()))/dA_km2
+z_grid = (pop*z_grid/z_grid.sum())/dA_km2
 
 # save gridded and scaled x_grid,y_grid,z_grid data
 # This is longitude/deg, latitude/deg, popdensity/(1/km^2)
