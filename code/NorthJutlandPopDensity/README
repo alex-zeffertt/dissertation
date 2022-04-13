@@ -1,0 +1,16 @@
+Run ./NorthJutlandPopDensity.py to create some population density data for North Jutland.
+Result is the file
+
+       ./NorthJutlandPopDensityGridded.pickle
+
+which contains a tuple of 3 1000x1000 numpy arrays
+
+     (x_grid, y_grid, z_grid)
+
+the first is longitude in degrees, the second is latitude in degrees, the third
+is population density in people per km2.
+
+Pre-requisites:
+
+The file ../NorthJutlandBoundary/NorthJutlandBoundary.pickle must exist first,
+See ../NorthJutlandBoundary/README
