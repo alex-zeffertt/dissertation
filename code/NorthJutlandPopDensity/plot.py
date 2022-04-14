@@ -24,9 +24,6 @@ def plot_polygon(ax, poly, **kwargs):
     ax.autoscale_view()
     return collection
 
-# Read in polygons for 'North Jutland'
-polygons = pickle.loads(open('../NorthJutlandBoundary/NorthJutlandBoundary.pickle','rb').read())
-
 # Read in population density data per km2 (z_grid)
 x_grid,y_grid,z_grid = pickle.loads(open('../NorthJutlandPopDensity/NorthJutlandPopDensityGridded.pickle','rb').read())
 x_min, x_max = x_grid[0,0], x_grid[-1,0]
@@ -47,13 +44,15 @@ fig,ax = plt.subplots()
 plt.contourf(x_grid,y_grid,z_grid,10,
              vmin=min(z_grid.flatten()),
              vmax=max(z_grid.flatten()),
-             cmap='coolwarm') 
+             cmap='coolwarm')
+polygons = pickle.loads(
+    open('../NorthJutlandBoundary/NorthJutlandBoundary.pickle','rb').read())
 outside = Polygon(
     shell=((x_min-x_range/20,y_min-y_range/20),
            (x_max+x_range/20,y_min-y_range/20),
            (x_max+x_range/20,y_max+y_range/20),
            (x_min-x_range/20,y_max+y_range/20)),
-holes=tuple(tuple(p.boundary.coords)for p in  polygons))
+    holes=tuple(tuple(p.boundary.coords) for p in  polygons))
 plot_polygon(plt.gca(), outside, lw=0, facecolor='white')
 for p in polygons:
     plt.plot(*zip(*p.boundary.coords), lw=1, color='black')
