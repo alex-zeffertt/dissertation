@@ -14,10 +14,14 @@
 # placed between every pair of cohabitants.
 #
 # We shall assume that the number of weak ties conforms to a Poisson distribution, which is
-# determined entirely by mean_n_weak_ties.  Since weak ties correspond to individuals which regularly dine
-# together (but do not cohabit) it is reasonable to assume that the physical distance 
-# distance between them is determined by a distribution with mean 0.  We shall use a normal
-# distribution, which is therefore characterized by standard_deviation weak_tie_sigma_km.
+# determined entirely by mean_n_weak_ties.  Since weak ties correspond to individuals which
+# regularly dine together (but do not cohabit) it is reasonable to assume that the closer two
+# individuals are geographically the more likely they are to form a weak tie.  Each such edge
+# corresponds to a vector and we shall assume that the x and y components of these are independent
+# random variables from normal distributions each with mean 0 and sd sigma_km.  A mathematical
+# consequence is that the resulting distribution of edge lengths has a right skewed distribution
+# whose modal length is also sigma_km.  However, we will need to verify that the non-uniform
+# character of the population density does not significantly change this.
 #
 # The final graph is represented as a tuple
 #
@@ -41,11 +45,11 @@ import sys
 ###### Configuration parameters ########
 # NB: population_thinning_factor is a debug option to speed things up
 mean_n_weak_ties  = 6   if len(sys.argv) < 2 else int(sys.argv[1])
-weak_tie_sigma_km = 1.0 if len(sys.argv) < 3 else float(sys.argv[2])
+modal_weak_tie_km = 1.0 if len(sys.argv) < 3 else float(sys.argv[2])
 population_thinning_factor = 1  if len(sys.argv) < 4 else float(sys.argv[3])
 
 print(f"mean_n_weak_ties={mean_n_weak_ties} "
-      f"weak_tie_sigma_km={weak_tie_sigma_km}")
+      f"modal_weak_tie_km={modal_weak_tie_km}")
 ###### Datasets which we need to build a representative graph #######
 
 # Read in population density data per km2 (z_grid)
@@ -112,13 +116,19 @@ for k,v in n_households_by_size_NJ.items():
 
 # Add random links between households
 
-# reuse same prob distribution within each sigma_x by sigma_y block for efficiency speedup
-sigma_km = weak_tie_sigma_km
-sigma_x = weak_tie_sigma_km * dx_deg/dx_km
-sigma_y = weak_tie_sigma_km * dy_deg/dy_km
+# We can achieve a modal weak tie edge distance of modal_weak_tie_km
+# by choosing x and y components independently and from normal distributions with mean 0 and sd
+# equal to modal_weak_tie_km
+sigma_km = modal_weak_tie_km
+
+# reuse same prob distribution within each sigma_x_deg by sigma_y_deg block for efficiency speedup
+sigma_x_deg = sigma_km * dx_deg/dx_km
+sigma_y_deg = sigma_km * dy_deg/dy_km
+
+# Create x and y bounds for each block
 epsilon = 0.0001
-x_blocklims = np.linspace(x_min-epsilon,x_max+epsilon,round(x_range/sigma_x))
-y_blocklims = np.linspace(y_min-epsilon,y_max+epsilon,round(y_range/sigma_y))
+x_blocklims = np.linspace(x_min-epsilon,x_max+epsilon,round(x_range/sigma_x_deg))
+y_blocklims = np.linspace(y_min-epsilon,y_max+epsilon,round(y_range/sigma_y_deg))
 
 # Choose a number of weak ties for each node
 # NB: divide by 2 to account for fact this node can be a target as well as source
@@ -173,14 +183,14 @@ edges = np.array(list(edge_dict.keys()), dtype=int)
 strong_tie = np.array([ edge_dict[i,j] for (i,j) in edges ], dtype=bool)
 
 if 1:
-    open(f'NorthJutlandSocialGraph_{mean_n_weak_ties}_{weak_tie_sigma_km}.pickle','wb').write(pickle.dumps((coords, edges, strong_tie)))
+    open(f'NorthJutlandSocialGraph_{mean_n_weak_ties}_{modal_weak_tie_km}.pickle','wb').write(pickle.dumps((coords, edges, strong_tie)))
 else:
     # debug: plot just the strong ties
     sys.path.append('..')
     import NorthJutlandPopDensity
     import matplotlib.pyplot as plt
     from matplotlib import collections as mc
-    NorthJutlandPopDensity.plot()
+    NorthJutlandPopDensity.plot(colorbar=False)
     ax = plt.gca()
     plt.scatter(coords[:,0],coords[:,1],marker='.',
                 linewidths=1,color='black')

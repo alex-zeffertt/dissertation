@@ -31,7 +31,7 @@ def plot_polygon(ax, poly, **kwargs):
     ax.autoscale_view()
     return collection
 
-def plot():
+def plot(colorbar=True):
     # Read in population density data per km2 (z_grid)
     x_grid,y_grid,z_grid = pickle.loads(open(f'{dir_path}/NorthJutlandPopDensityGridded.pickle','rb').read())
     x_min, x_max = x_grid[0,0], x_grid[-1,0]
@@ -64,7 +64,8 @@ def plot():
     plot_polygon(plt.gca(), outside, lw=0, facecolor='white')
     for p in polygons:
         plt.plot(*zip(*p.boundary.coords), lw=1, color='black')
-    plt.colorbar()
+    if colorbar:
+        plt.colorbar()
     ax.set_aspect((dy_km/dy_deg) / (dx_km/dx_deg))
     plt.title("North Jutland population density per km$^2$")
 
