@@ -151,17 +151,22 @@ for i in range(len(x_blocklims)-1):
         # Randomly choose peers for each node in inblock_idxs
         peer_idxs = np.random.choice(idxs, p=prob, size=(n_inblock,max_n_weak_ties))
         for idx, _peer_idxs, n_peers in zip(inblock_idxs, peer_idxs, n_weak_ties[inblock_idxs]):
-            for peer_idx in _peer_idxs[:n_peers]:
-                if peer_idx != idx:
-                    lhs = max(idx, peer_idx)
-                    rhs = min(idx, peer_idx)
-                    edge = (lhs,rhs)
-                    if edge not in edge_dict:
-                        edge_dict[edge] = False # weak tie
+            n_added = 0
+            for peer_idx in _peer_idxs:
+                if n_added >= n_peers:
+                    break
+                lhs = max(idx, peer_idx)
+                rhs = min(idx, peer_idx)
+                edge = (lhs,rhs)
+                if peer_idx != idx and edge not in edge_dict:
+                    edge_dict[edge] = False # weak tie
+                    n_added += 1
 
+        # Display percentage complete
         percent_done = ((i+1)*len(y_blocklims) + (j+1))*100
         percent_done /= (len(x_blocklims)*len(y_blocklims))
         print(f"\r{percent_done:.1f}%", end="")
+print("")
 
 # Save graph
 edges = np.array(list(edge_dict.keys()), dtype=int)
@@ -183,4 +188,3 @@ else:
                                         linewidths=1, colors='black'))
     ax.add_collection(mc.LineCollection(coords[edges[strong_tie==False]],
                                         linewidths=1, colors='black', alpha=0.5))
-    plt.show()
