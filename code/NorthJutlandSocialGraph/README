@@ -1,0 +1,32 @@
+Run NorthJutlandSocialGraph.py with two parameters to build a social graph, e.g.
+
+    ./NorthJutlandSocialGraph.py 4 1.5
+
+The first is the average number of weak ties each person has (identified as
+people with whom each person eats on a regular basis).  The number of
+weak ties is modelled by a Poisson distribution with this mean.
+
+The second parameter indicates how geographically close weak ties are in km.
+Specifically the probability of a weak tie between two individuals is
+taken to be proportional to the value of a normal distribution with
+this s.d..
+
+----- Outputs -------
+
+The script creates the file
+
+    ./NorthJutlandSocialGraph_<arg0>_<arg1>.pickle
+
+The idea is to create a number of these files in with different
+arguments in advance because creation of these social graphs is a slow
+process.  This will allow effects found later on when the CA is run to
+be parametized efficiently.
+
+----- Prerequisites ------
+
+The script requires that
+
+    ../NorthJutlandPopDensity/NorthJutlandPopDensityGridded.pickle
+
+already exists.  See ../NorthJutlandPopDensity/README for details on
+how to create this.

@@ -32,7 +32,7 @@
 #
 # Run this file with the command line
 #
-#     ./graph.py <mean_n_weak_ties>_<weak_tie_sigma_km>
+#     ./NorthJutlandSocialGraph.py <mean_n_weak_ties>_<weak_tie_sigma_km>
 
 import pickle
 import numpy as np
@@ -49,7 +49,7 @@ print(f"mean_n_weak_ties={mean_n_weak_ties} "
 ###### Datasets which we need to build a representative graph #######
 
 # Read in population density data per km2 (z_grid)
-x_grid,y_grid,z_grid = pickle.loads(open('NorthJutlandPopDensity/NorthJutlandPopDensityGridded.pickle','rb').read())
+x_grid,y_grid,z_grid = pickle.loads(open('../NorthJutlandPopDensity/NorthJutlandPopDensityGridded.pickle','rb').read())
 x_min, x_max = x_grid[0,0], x_grid[-1,0]
 y_min, y_max = y_grid[0,0], y_grid[0,-1]
 x_range = x_max - x_min
@@ -167,18 +167,15 @@ for i in range(len(x_blocklims)-1):
 edges = np.array(list(edge_dict.keys()), dtype=int)
 strong_tie = np.array([ edge_dict[i,j] for (i,j) in edges ], dtype=bool)
 
-open(f'NorthJutlandSocialGraph_{mean_n_weak_ties}_{weak_tie_sigma_km}.pickle','wb').write(
-    pickle.dumps((coords, edges, strong_tie))
-)
-
-
-if 0:
-    # plot just the strong ties
+if 1:
+    open(f'NorthJutlandSocialGraph_{mean_n_weak_ties}_{weak_tie_sigma_km}.pickle','wb').write(pickle.dumps((coords, edges, strong_tie)))
+else:
+    # debug: plot just the strong ties
+    sys.path.append('..')
     import NorthJutlandPopDensity
     import matplotlib.pyplot as plt
     from matplotlib import collections as mc
     NorthJutlandPopDensity.plot()
-    plt.ioff()
     ax = plt.gca()
     plt.scatter(coords[:,0],coords[:,1],marker='.',
                 linewidths=1,color='black')
