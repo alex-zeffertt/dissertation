@@ -78,14 +78,6 @@ beta = np.array([
 # Therefore C_1 and C_2 are parameters we can play with to determine how awareness and practicality can
 # affect the evolution of the model.
 
-# We know that in the population as a whole we have the following split
-#
-#  NO intention    Intention    Reducer
-#  57.3%           11.4%        31.2%
-#
-# As an example, lets use this split to calculate C_1 and C_2, as if the above holds for the subset of the
-# population with no meat-reducer ties.
-
 
 # Create plots for a number of different options for C_1 and C_2
 plt.ion()
@@ -109,12 +101,10 @@ for percent, ax in zip(percent_splits, axes.flatten()):
 
     # Plot the result
     plt.sca(ax)
-#    plt.title(f'$C_1=ln({percent[1]}\%/{percent[0]}\%)$ and $C_2=ln({percent[2]}\%/{percent[0]}\%)$')
     plt.title(f'No-ties split {percent[0]}:{percent[1]}:{percent[2]}')
     plt.bar(x = np.arange(5) +.00, height=P[0], width=.25, color='red',   edgecolor='black', alpha=.5, label='Pr(NO intention)')
     plt.bar(x = np.arange(5) +.25, height=P[1], width=.25, color='yellow',edgecolor='black', alpha=.5, label='Pr(Intention)')
     plt.bar(x = np.arange(5) +.50, height=P[2], width=.25, color='green', edgecolor='black', alpha=.5, label='Pr(Reducer)')
-#    plt.gcf().subplots_adjust(bottom=.15)
 
 
 # Stuff shared between axes
@@ -124,3 +114,12 @@ axes[1][0].set_xlabel('Number of meat-reducer social-ties')
 axes[1][1].set_xlabel('Number of meat-reducer social-ties')
 axes[0][0].set_ylabel('Probability')
 axes[1][0].set_ylabel('Probability')
+
+# NB: We know from the M&L paper that in the Danish population as a whole we have the following split
+#
+#  NO intention    Intention    Reducer
+#  57.3%           11.4%        31.2%
+#
+# This generates an upper bound for a realistic C_1 and C_2, namely log(11.4/57.3) and log(31.2/57.3)
+# Since the ratios must be smaller if we restrict to just the population that have no ties to meat-reducers.
+
