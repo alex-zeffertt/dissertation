@@ -20,12 +20,21 @@
 # If we define y = logit(x) that transforms an x-domain of [0,1] to a y-domain of  [-\infty, +\infty]
 # so let's assume that y is normally distributed and see what distributions this gives us
 
+# It turns out it gives the logit normal distribution
+#
+#    P(N(\mu, \sigma))
+#
+# with pdf
+#
+#    \frac{1}{\sigma{\sqrt{2\pi }}}}\,{\frac{1}{x(1-x)}}\,e^{{-{\frac{(\operatorname {logit}(x)-\mu )^{2}}{2\sigma^{2}}}}
+#
+# It's a distribution where the logit transformed variable y = logit(x)
+# normally distributed by the normal distribution.
+
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 import numpy as np
 import scipy
-
-fig = plt.figure()
 
 # Define the domain in terms of x and of its transform y
 epsilon = 0.0001
@@ -40,6 +49,7 @@ def pdf(sigma):
     return dpdx
 
 # Plot pdf dp/dx for several values of sigma
+fig = plt.figure()
 for sigma in np.arange(.25,2,.25):
     plt.plot(x, pdf(sigma), label=f'$\sigma={sigma}$')
 
@@ -50,3 +60,26 @@ plt.title('Distribution of prob(change_considered_one_timestep) using\n$\\frac{d
 fig.subplots_adjust(top=fig.subplotpars.top * .95)
 plt.ion()
 plt.show()
+
+def cdf(sigma):
+    csum = np.cumsum(pdf(sigma))
+    return csum/csum[-1]
+
+# Plot cdf p(<x) for several values of sigma
+fig = plt.figure()
+for sigma in np.arange(.25,2,.25):
+    plt.plot(x, cdf(sigma), label=f'$\sigma={sigma}$')
+
+plt.legend()
+plt.ylabel('p', rotation=0)
+plt.xlabel("x = individual's probability of considering change in one time step")
+plt.title('Cummulative distribution of prob(change_considered_one_timestep) using\n$\\frac{dp}{dy}$ = N(0,$\sigma$)\ny = logit(x)')
+fig.subplots_adjust(top=fig.subplotpars.top * .95)
+plt.ion()
+plt.show()
+# NB:
+# at sigma = 0.25 the probabilities are tightly distributed around 1/2
+# by sigma = 1.5 it has flattened to a more or less uniform distribution between
+#            zero and 1
+# after sigma = 1.75 the distribution starts to become bimodal with one mode near
+#            zero and another mode close to 1
