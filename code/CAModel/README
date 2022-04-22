@@ -1,0 +1,55 @@
+Run ./CAModel to evolve the state over a bunch of timesteps, e.g.
+
+    ./NorthJutlandSocialGraph.py \
+          <mean_n_weak_ties> \
+          <modal_weak_tie_km> \
+          <awareness_pc> \
+          <facility_pc> \
+          <p_update_logit_normal_sigma> \
+          <n_timesteps>
+     
+If fewer params are given then defaults are used for the unset arguments at the
+end:
+
+          <mean_n_weak_ties> : default 6 : average number of weak ties per person
+          <modal_weak_tie_km> : default 1.0 : modal distance of a weak tie
+          <awareness_pc> : default 30 : percent of those initially without ties
+                                        intending to or actively meat reducing
+          <facility_pc> : default 33.3 : percent of those initially without ties
+                                         and intending to or actively meat
+                                         reducing who are meat reducing.
+          <p_update_logit_normal_sigma> : default 0.5 : std deviation of logit(p)
+                                       where p is an individual's likelihood of
+                                       doing a random update each timestep.
+                                       (mean is fixed at 0.5).  The distribution
+                                       switches from modal to bimodal at around
+                                       sigma = 1.5
+          <n_timesteps> : default 20 : number of timesteps.  These are nominally
+                                      6 months, but in fact determined by the
+                                      fact the distribution above has mean 0.5
+
+----- Outputs -------
+
+Creates a bunch of graphs at the moment.
+TODO create some maps
+
+Preliminary investigation suggests that
+
+1) the output converges quite quickly (< 10 timesteps) independently of values
+   used (as long as they're reasonable)
+
+2) the ratios in each stage of change coverge stabily
+
+3) the limits of convergence change smoothly as you change each of the first 5
+   parameters
+
+4) no appearance of any avalanche effect, as such
+
+----- Prerequisites ------
+
+The script requires that
+
+    ../NorthJutlandSocialGraph/NorthJutlandSocial_Graph_<mean_n_weak_ties>_<modal_weak_tie_km>.pickle
+
+already exists.  See ../NorthJutlandPopDensity/README for details on
+how to create this.
