@@ -48,7 +48,8 @@ def plot(colorbar=True):
 
     # Plot population density
     plt.ion()
-    fig,ax = plt.subplots()
+    fig = plt.gcf()
+    ax = plt.gca()
     plt.contourf(x_grid,y_grid,z_grid,10,
                  vmin=min(z_grid.flatten()),
                  vmax=max(z_grid.flatten()),
