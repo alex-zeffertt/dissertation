@@ -4,6 +4,9 @@ import pickle
 import sys
 import matplotlib.pyplot as plt
 plt.ion()
+from matplotlib import collections as mc
+sys.path.append('..')
+import NorthJutlandBoundary
 
 # Parameters
 
@@ -48,10 +51,14 @@ beta = np.array([
 # Calculate the NOintention:intention:reducer split for case X = 0 (no ties)
 pop_not_intending_with_no_ties = 100 - awareness_pc
 pop_reducing_with_no_ties = awareness_pc * facility_pc / 100
-pop_intending_with_no_ties = 100 - pop_not_intending_with_no_ties - pop_reducing_with_no_ties
+pop_intending_with_no_ties = 100 - \
+    pop_not_intending_with_no_ties - \
+    pop_reducing_with_no_ties
 
 # Calculate P[:,:] as per calcProbs
-percent = [pop_not_intending_with_no_ties, pop_intending_with_no_ties, pop_reducing_with_no_ties]
+percent = [pop_not_intending_with_no_ties,
+           pop_intending_with_no_ties,
+           pop_reducing_with_no_ties]
 C = np.log(np.array([percent])/percent[0])
 C = C.transpose()
 P = np.exp(C + beta)/np.exp(C + beta).sum(axis=0)
@@ -168,33 +175,158 @@ for tstep in range(n_timesteps):
         prob_diets = P[:,j]
         Y[idxs] = np.random.choice(n_diet_categories, len(idxs), p=prob_diets)
     
+if 0:
+    # Plot Y categories vs time
+    plt.figure()
+    t = np.arange(n_timesteps)
+    plt.plot(t,Y_vs_time[t,0], '-', label='NO intention', color='black')
+    plt.plot(t,Y_vs_time[t,1], ':', label='Intention', color='black')
+    plt.plot(t,Y_vs_time[t,2], '--', label='Reducer', color='black')
+    plt.xticks(t[::len(t)//5])
+    plt.xlabel('timestep')
+    plt.yticks([0,100e3,200e3,300e3,400e3],['0','100k','200k','300k','400k']) 
+    plt.ylabel('frequency')
+    plt.title('Modelled dietary changes over time')
+    plt.legend()
 
-# Plot Y categories vs time
-plt.figure()
-t = np.arange(n_timesteps)
-plt.plot(t,Y_vs_time[t,0], '-', label='NO intention', color='black')
-plt.plot(t,Y_vs_time[t,1], ':', label='Intention', color='black')
-plt.plot(t,Y_vs_time[t,2], '--', label='Reducer', color='black')
-plt.xticks(t[::len(t)//5])
-plt.xlabel('timestep')
-plt.yticks([0,100e3,200e3,300e3,400e3],['0','100k','200k','300k','400k']) 
-plt.ylabel('frequency')
-plt.title('Modelled dietary changes over time')
-plt.legend()
+    # Plot X categories vs time
+    plt.figure()
+    t = np.arange(n_timesteps)
+    c=['no ties','only weak ties','1-2 strong, no weak',
+       '1-2 strong + weak','3+ strong']
+    plt.plot(t,X_vs_time[t,0], '-',  label=c[0], color='black')
+    plt.plot(t,X_vs_time[t,1], '--', label=c[1], color='black')
+    plt.plot(t,X_vs_time[t,2], '-.', label=c[2], color='black')
+    plt.plot(t,X_vs_time[t,3], ':',  label=c[3], color='black')
+    plt.plot(t,X_vs_time[t,4], '--', label=c[4], color='black', dashes=(2,.8,8,.8))
+    plt.xticks(t[::len(t)//5])
+    plt.xlabel('timestep')
+    plt.yticks([0,200e3,400e3,600e3],['0','200k','400k','600k']) 
+    plt.ylabel('frequency')
+    plt.title('Modelled changes in social ties to meat reducers over time')
+    plt.legend()
 
-# Plot X categories vs time
-plt.figure()
-t = np.arange(n_timesteps)
-c=['no ties','only weak ties','1-2 strong, no weak',
-   '1-2 strong + weak','3+ strong']
-plt.plot(t,X_vs_time[t,0], '-',  label=c[0], color='black')
-plt.plot(t,X_vs_time[t,1], '--', label=c[1], color='black')
-plt.plot(t,X_vs_time[t,2], '-.', label=c[2], color='black')
-plt.plot(t,X_vs_time[t,3], ':',  label=c[3], color='black')
-plt.plot(t,X_vs_time[t,4], '--', label=c[4], color='black', dashes=(2,.8,8,.8))
-plt.xticks(t[::len(t)//5])
-plt.xlabel('timestep')
-plt.yticks([0,200e3,400e3,600e3],['0','200k','400k','600k']) 
-plt.ylabel('frequency')
-plt.title('Modelled changes in social ties to meat reducers over time')
-plt.legend()
+if 0:
+    # plot some small part of the map with graph links
+    idxs = \
+       (coords[:,0] > 9.920) & \
+       (coords[:,0] < 9.940) & \
+       (coords[:,1] > 57.050) & \
+       (coords[:,1] < 57.070)
+    present = np.zeros(M,dtype=bool)
+    present[idxs] = True
+    _use = present[edges[:,0]] & present[edges[:,1]]
+    _edges = edges[_use]
+    _strong_tie = strong_tie[_use]
+
+    NorthJutlandBoundary.plot()
+    colormap = np.array(['red','yellow','green'])
+    plt.scatter(
+        coords[idxs,0],coords[idxs,1],
+        linewidths=1,
+        c=colormap[Y[idxs]])
+    ax = plt.gca()
+    ax.add_collection(
+        mc.LineCollection(
+            coords[_edges[_strong_tie]],
+            linewidths=1, colors='black'))
+    ax.add_collection(
+        mc.LineCollection(
+            coords[_edges[_strong_tie==False]],
+            linewidths=1, colors='black', alpha=0.1))
+
+if 0:
+    # plot every point color coded
+    NorthJutlandBoundary.plot()
+    colormap = np.array(['red','yellow','green'])
+    idxs = np.arange(M,dtype=int)
+    plt.scatter(coords[idxs,0],coords[idxs,1],
+                linewidths=1, c=colormap[Y[idxs]], alpha=0.01)
+
+if 1:
+    # Graphs showing how no intention, intention, and reducer are distributed
+    x_grid,y_grid,z_grid = pickle.loads(open('../NorthJutlandPopDensity/NorthJutlandPopDensityGridded.pickle','rb').read())
+    x_min, x_max = x_grid[0,0], x_grid[-1,0]
+    y_min, y_max = y_grid[0,0], y_grid[0,-1]
+    x_range = x_max - x_min
+    y_range = y_max - y_min
+
+    # Work out grid areas and population of North Jutland n_pop_NJ
+    R_km = 6371 # Radius of earth
+    dx_deg = x_grid[1,0]-x_grid[0,0]
+    dy_deg = y_grid[0,1]-y_grid[0,0]
+    dx_km = (np.pi*dx_deg/180)*R_km*np.cos(np.pi*y_grid[0,0]/180)
+    dy_km = (np.pi*dy_deg/180)*R_km
+    dA_km2 = dx_km*dy_km
+
+    # make grid squares larger
+    divs = 100
+    from scipy.interpolate import griddata
+    _x_grid, _y_grid = np.mgrid[x_min:x_max:divs*1j, y_min:y_max:divs*1j]
+    _z_grid = griddata((x_grid.flatten(),y_grid.flatten()),
+                       z_grid.flatten(), (_x_grid, _y_grid),
+                       fill_value=0.,method='linear')
+    _dx_deg = _x_grid[1,0]-_x_grid[0,0]
+    _dy_deg = _y_grid[0,1]-_y_grid[0,0]
+    _dx_km = (np.pi*_dx_deg/180)*R_km*np.cos(np.pi*_y_grid[0,0]/180)
+    _dy_km = (np.pi*_dy_deg/180)*R_km
+    _dA_km2 = _dx_km*_dy_km
+
+    _n_no_intention = np.zeros((divs,divs),dtype=int)
+    _n_intention = np.zeros((divs,divs),dtype=int)
+    _n_reducer = np.zeros((divs,divs),dtype=int)
+    _n = np.zeros((divs,divs),dtype=int)
+    for idx in range(M):
+        x,y  = coords[idx]
+        i = round((x - x_min)/_dx_deg)
+        j = round((y - y_min)/_dy_deg)
+        _n[i,j] += 1
+        state = Y[idx]
+        if state == 0:
+            _n_no_intention[i,j] += 1
+        elif state == 1:
+            _n_intention[i,j] += 1
+        else:
+            _n_reducer[i,j] += 1
+
+    _n_no_intention_pc = np.zeros((divs,divs),dtype=float)
+    _n_intention_pc = np.zeros((divs,divs),dtype=float)
+    _n_reducer_pc = np.zeros((divs,divs),dtype=float)
+    nz = _n.nonzero()
+    _n_no_intention_pc[nz] = 100.* _n_no_intention[nz] / _n[nz]
+    _n_intention_pc[nz]    = 100.* _n_intention[nz]    / _n[nz]
+    _n_reducer_pc[nz]      = 100.* _n_reducer[nz]      / _n[nz]
+
+    plt.figure()
+    bins=100
+    plt.hist(_n_no_intention_pc[nz], bins=bins, alpha=0.5, label='NO intention')
+    plt.hist(_n_intention_pc[nz], bins=bins, alpha=0.5, label='Intention')
+    plt.hist(_n_reducer_pc[nz], bins=bins, alpha=0.5, label='Reducer')
+    plt.xlabel('% of grid square')
+    plt.ylabel('frequency')
+    plt.title(f'Histograms of %ages in {len(nz[0])} non-empty grid squares')
+    plt.legend()
+
+    plt.figure()
+    NorthJutlandBoundary.plot()
+    plt.contourf(_x_grid,_y_grid,_n_no_intention_pc,10,vmin=0,vmax=100,cmap='coolwarm')
+    plt.title('% population in state "NO intention" by area')
+    plt.colorbar()
+
+    plt.figure()
+    NorthJutlandBoundary.plot()
+    plt.contourf(_x_grid,_y_grid,_n_intention_pc,10,vmin=0,vmax=100,cmap='coolwarm')
+    plt.title('% population in state "Intention" by area')
+    plt.colorbar()
+
+    plt.figure()
+    NorthJutlandBoundary.plot()
+    plt.contourf(_x_grid,_y_grid,_n_reducer_pc,10,vmin=0,vmax=100,cmap='coolwarm')
+    plt.title('% population in state "Reducer" by area')
+    plt.colorbar()
+
+# inhomogenous households
+
+# bar plots of highly connected individuals (weak links)
+
+# bar plots of highly connected individuals (strong links)
