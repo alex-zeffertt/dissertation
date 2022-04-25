@@ -26,6 +26,13 @@ arguments in advance because creation of these social graphs is a slow
 process.  This will allow effects found later on when the CA is run to
 be parametized efficiently.
 
+This python pickle file contains the following tuple
+
+     (coords, edges, strong_tie)
+
+where coords is an Nx2 numpy array of longitude and latitude, edges is a Ex2 array of
+indices into coords, and strong_tie is an 1xE array of bools.
+
 ----- Prerequisites ------
 
 The script requires that
