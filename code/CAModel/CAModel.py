@@ -155,7 +155,7 @@ def run_model(coords, edges, strong_tie,          # Defines social graph (see ..
         X[(n_strong_ties == 0) & (n_weak_ties >= 1)] = 1
         X[(n_strong_ties >= 1) & (n_strong_ties <= 2) & (n_weak_ties == 0)] = 2
         X[(n_strong_ties >= 1) & (n_strong_ties <= 2) & (n_weak_ties >= 1)] = 3
-        X[(n_strong_ties >= 2)] = 4
+        X[(n_strong_ties >= 3)] = 4
 
         # Update diet categories Y
         for j in range(n_tie_categories):
