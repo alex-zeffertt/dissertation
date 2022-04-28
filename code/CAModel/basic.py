@@ -119,39 +119,10 @@ if __name__ == '__main__':
 
     plt.ion()
 
-    # Plot what happens if you "run to completion"
-
-    fig, axes = plt.subplots(nrows=1,ncols=2)
-    plt.suptitle("Simple model results after 100 steps")
-    X, Y = run_model(n_rows=100,n_cols=100,
-                     awareness_pc=30, facility_pc=33.3,
-                     n_timesteps=100)
-    plt.sca(axes[0])
-    cmap = matplotlib.cm.get_cmap("coolwarm", 3)
-    im = plt.imshow(Y, cmap=cmap, interpolation='nearest')
-    plt.xticks([])
-    plt.yticks([])
-    plt.title("stage of change")
-    divider = make_axes_locatable(plt.gca())
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    cb = plt.colorbar(im,cax=cax, ticks=[.25,1,1.75])
-    cb.ax.set_yticklabels(['   NO\nintention','Intention','Reducer'])
-
-    plt.sca(axes[1])
-    cmap = matplotlib.cm.get_cmap("coolwarm", 5)
-    im = plt.imshow(X, cmap=cmap, interpolation='nearest')
-    plt.xticks([])
-    plt.yticks([])
-    plt.title(f"Social links")
-    divider = make_axes_locatable(plt.gca())
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    cb = plt.colorbar(im, cax=cax, ticks=[.25,1,2,3,3.75])
-    cb.ax.set_yticklabels(['no ties','weak ties','1-2 strong\nno weak',
-                           '1-2 strong\n+weak','3+ strong'])
+    # Q: How quickly does it just become noise?
+    # A: About 3
     
-
-    # How quickly does it just become noise?
-    fig, axes = plt.subplots(nrows=2,ncols=4)
+    fig, axes = plt.subplots(nrows=2,ncols=4, gridspec_kw={'width_ratios':[1,1,1,1.065]})
     plt.suptitle('Simple CA model over 3 generations\n\n')
 
     results = run_model(n_rows=100,n_cols=100,
