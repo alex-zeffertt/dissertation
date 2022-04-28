@@ -45,7 +45,8 @@ def run_model(n_rows, n_cols,
     peers_weak[:,2] = idxs[(row_idxs+1)%n_rows][:,(col_idxs-1)%n_cols].flatten()
     peers_weak[:,3] = idxs[(row_idxs+1)%n_rows][:,(col_idxs+1)%n_cols].flatten()
 
-    Y[idxs[45:55][:,45:55].flatten()] = 2
+    Y[idxs[35:45][:,35:45].flatten()] = 2
+    Y[idxs[55:65][:,55:65].flatten()] = 2
     if return_history:
         results = [np.reshape(Y.copy(),(n_rows,n_cols))]
 
@@ -53,15 +54,23 @@ def run_model(n_rows, n_cols,
     # every time step update X and then update Y then update plot
     for tstep in range(n_timesteps):
 
-        n_strong_ties = (Y[peers_strong] == 2).sum(axis=1)
-        n_weak_ties   = (Y[peers_weak] == 2).sum(axis=1)
-        n_effective   = n_strong_ties + n_weak_ties * weak_strong_ratio
+        n_reducer_strong_ties = (Y[peers_strong] == 2).sum(axis=1)
+        n_reducer_weak_ties   = (Y[peers_weak] == 2).sum(axis=1)
+        n_reducer_effective_strong = \
+            n_reducer_strong_ties + \
+            n_reducer_weak_ties * weak_strong_ratio
 
+        n_non_reducer_strong_ties = (Y[peers_strong] < 2).sum(axis=1)
+        n_non_reducer_weak_ties   = (Y[peers_weak] < 2).sum(axis=1)
+        n_non_reducer_effective_strong = \
+            n_non_reducer_strong_ties + \
+            n_non_reducer_weak_ties * weak_strong_ratio
+        
         # P, Q, and R are the probabilities for transition 0->1, 1->2, and 2->0
         # respectively, taking into account number of peers
-        P = 1 - np.exp(-n_effective * p)
-        Q = 1 - np.exp(-n_effective * q)
-        R = 1 - np.exp(-n_effective * r)
+        P = 1 - np.exp(-n_reducer_effective_strong * p)
+        Q = 1 - np.exp(-n_reducer_effective_strong * q)
+        R = 1 - np.exp(-n_non_reducer_effective_strong * r)
     
         # Update diet categories Y
 
@@ -97,16 +106,16 @@ if __name__ == '__main__':
 
     # Q: How quickly does it just become noise?
     fig, axes = plt.subplots(nrows=2,ncols=4, gridspec_kw={'width_ratios':[1,1,1,1.065]})
-    plt.suptitle('Contrived CA model over 350 generations\n\n')
+    plt.suptitle('Contrived CA model over 700 generations\n\n')
 
     results = run_model(n_rows=100,n_cols=100,
-                        p=0.1, q=0.1, r=0.05, weak_strong_ratio=0.5,
-                        n_timesteps=400,
-                        return_history=True, history_stride=50)
+                        p=0.20, q=0.05, r=0.035, weak_strong_ratio=0.25,
+                        n_timesteps=800,
+                        return_history=True, history_stride=100)
     
     for i in range(8):
 
-        n_timesteps = 50*i
+        n_timesteps = 100*i
         Y = results[i]
         
         cmap = matplotlib.cm.get_cmap("coolwarm", 3)
