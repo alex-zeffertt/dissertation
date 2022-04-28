@@ -104,21 +104,21 @@ if __name__ == '__main__':
 
     plt.ion()
 
-    # Q: How quickly does it just become noise?
-    fig, axes = plt.subplots(nrows=2,ncols=4, gridspec_kw={'width_ratios':[1,1,1,1.065]})
-    plt.suptitle('Contrived CA model over 700 generations\n\n')
-
     results = run_model(n_rows=100,n_cols=100,
-                        p=0.20, q=0.05, r=0.035, weak_strong_ratio=0.25,
-                        n_timesteps=800,
-                        return_history=True, history_stride=100)
+                        p=0.20, q=0.05, r=0.035, weak_strong_ratio=.99,
+                        n_timesteps=1600,
+                        return_history=True, history_stride=200)
+
+    fig, axes = plt.subplots(nrows=2,ncols=4,
+                             gridspec_kw={'width_ratios':[1,1,1,1.065]})
+    plt.suptitle('Contrived CA model over 1400 generations\n\n')
     
     for i in range(8):
 
-        n_timesteps = 100*i
+        n_timesteps = 200*i
         Y = results[i]
         
-        cmap = matplotlib.cm.get_cmap("coolwarm", 3)
+        cmap = matplotlib.cm.get_cmap("YlGn", 3)
         plt.sca(axes[i//4][i%4])
         im = plt.imshow(Y, cmap=cmap, interpolation='nearest')
         plt.xticks([])
