@@ -77,12 +77,8 @@ def run_model(n_rows, n_cols,
     update_X()
 
     if return_history:
-        results = []
-        _X = X.copy()
-        _Y = Y.copy()
-        _X.shape = (n_rows,n_cols)
-        _Y.shape = (n_rows,n_cols)
-        results.append((_X,_Y))
+        results = [(np.reshape(X.copy(),(n_rows,n_cols)),
+                    np.reshape(Y.copy(),(n_rows,n_cols)))]
         
     # The main loop:
     # every time step update X and then update Y then update plot
@@ -99,21 +95,15 @@ def run_model(n_rows, n_cols,
         update_X()
 
         if return_history:
-            _X = X.copy()
-            _Y = Y.copy()
-            _X.shape = (n_rows,n_cols)
-            _Y.shape = (n_rows,n_cols)
-            results.append((_X,_Y))
+            results.append((
+                np.reshape(X.copy(),(n_rows,n_cols)),
+                np.reshape(Y.copy(),(n_rows,n_cols))))
         
     # Fix up shapes
     X.shape = n_rows,n_cols
     Y.shape = n_rows,n_cols
 
-    if return_history:
-        return results
-    
-    # Return the values
-    return (X,Y)
+    return results if return_history else (X,Y)
 
 if __name__ == '__main__':
 
