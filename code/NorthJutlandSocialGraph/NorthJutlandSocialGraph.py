@@ -44,7 +44,7 @@ import sys
 
 ###### Configuration parameters ########
 # NB: population_thinning_factor is a debug option to speed things up
-mean_n_weak_ties  = 6   if len(sys.argv) < 2 else int(sys.argv[1])
+mean_n_weak_ties  = 6.0   if len(sys.argv) < 2 else float(sys.argv[1])
 modal_weak_tie_km = 1.0 if len(sys.argv) < 3 else float(sys.argv[2])
 population_thinning_factor = 1  if len(sys.argv) < 4 else float(sys.argv[3])
 
