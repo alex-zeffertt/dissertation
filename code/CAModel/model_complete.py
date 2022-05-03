@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+import argparse
 import numpy as np
 import pickle
 import sys
-import matplotlib.pyplot as plt
-plt.ion()
 from matplotlib import collections as mc
+import matplotlib.pyplot as plt
+from IPython.terminal.embed import InteractiveShellEmbed
+from scipy.interpolate import griddata
 sys.path.append('..')
 import NorthJutlandBoundary
 
@@ -131,8 +133,8 @@ def run_model(coords, edges, strong_tie,          # Defines social graph (see ..
     p_update = np.random.choice(p_update_vals, M, p=p_update_probs)
 
     # Arrays for saving changes in populations over time, for latter plotting
-    X_vs_time = np.zeros((n_timesteps,n_tie_categories))
-    Y_vs_time = np.zeros((n_timesteps,n_diet_categories))
+    X_vs_time = np.zeros((n_timesteps,n_tie_categories),dtype=int)
+    Y_vs_time = np.zeros((n_timesteps,n_diet_categories),dtype=int)
 
     # The main loop:
     # every time step update X and then update Y then update plot
@@ -173,28 +175,16 @@ def run_model(coords, edges, strong_tie,          # Defines social graph (see ..
     # Return the tuple
     return (X,Y,X_vs_time,Y_vs_time)
 
-if __name__ == '__main__':
-
-    # Read Parameters from command line
-    mean_n_weak_ties  = 6   if len(sys.argv) <= 1 else int(sys.argv[1])
-    modal_weak_tie_km = 1.0 if len(sys.argv) <= 2 else float(sys.argv[2])
-    awareness_pc = 30       if len(sys.argv) <= 3 else float(sys.argv[3])
-    facility_pc = 33.333333 if len(sys.argv) <= 4 else float(sys.argv[4])
-    p_update_logit_normal_sigma = 0.5 if len(sys.argv) <= 5 else float(sys.argv[5])
-    n_timesteps = 20        if len(sys.argv) <= 6 else int(sys.argv[6])
-
-    # Read in social graph (See ../NorthJutlandSocialGraph/README for file format)
-    filename = '../NorthJutlandSocialGraph/'\
-        f'NorthJutlandSocialGraph_{mean_n_weak_ties}_{modal_weak_tie_km}.pickle'
-    coords, edges, strong_tie = pickle.loads(open(filename,'rb').read())
-    M = coords.shape[0]
-
-    # Run the model
-    X,Y,X_vs_time,Y_vs_time = run_model(coords, edges, strong_tie,
-                                        awareness_pc, facility_pc,
-                                        p_update_logit_normal_sigma,
-                                        n_timesteps)
-if 0:
+# Plot changes in populations sizes against time
+# rows in X_vs_time, Y_vs_time are indexed by timestep.
+# columns in X_vs_time are the different categories indicating numbers and types of social ties to meat reducers
+# columns in Y_vs_time are the different stages of change in terms of reducing meat consumption
+def plot_vs_time(X_vs_time, Y_vs_time):
+    assert X_vs_time.shape[0] == Y_vs_time.shape[0]
+    assert X_vs_time.shape[1] == 5
+    assert Y_vs_time.shape[1] == 3
+    n_timesteps = X_vs_time.shape[0]
+    
     # Plot Y categories vs time
     plt.figure()
     t = np.arange(n_timesteps)
@@ -225,46 +215,27 @@ if 0:
     plt.title('Modelled changes in social ties to meat reducers over time')
     plt.legend()
 
-if 0:
-    # plot some small part of the map with graph links
-    idxs = \
-       (coords[:,0] > 9.920) & \
-       (coords[:,0] < 9.940) & \
-       (coords[:,1] > 57.050) & \
-       (coords[:,1] < 57.070)
-    present = np.zeros(M,dtype=bool)
-    present[idxs] = True
-    _use = present[edges[:,0]] & present[edges[:,1]]
-    _edges = edges[_use]
-    _strong_tie = strong_tie[_use]
 
-    NorthJutlandBoundary.plot()
-    colormap = np.array(['red','yellow','green'])
-    plt.scatter(
-        coords[idxs,0],coords[idxs,1],
-        linewidths=1,
-        c=colormap[Y[idxs]])
-    ax = plt.gca()
-    ax.add_collection(
-        mc.LineCollection(
-            coords[_edges[_strong_tie]],
-            linewidths=1, colors='black'))
-    ax.add_collection(
-        mc.LineCollection(
-            coords[_edges[_strong_tie==False]],
-            linewidths=1, colors='black', alpha=0.1))
-
-if 0:
+# WARNING: SLOW
+# coords: Mx2 numpy array with location (longitude_deg,latitude_deg) of each individual
+# Y: M array with stage of change category for each individual 0=>NO intention, 1=>intention, 2=>reducer
+def plot_scatter_diagram_on_map(coords,Y):
     # plot every point color coded
+    plt.figure()
     NorthJutlandBoundary.plot()
     colormap = np.array(['red','yellow','green'])
     idxs = np.arange(M,dtype=int)
     plt.scatter(coords[idxs,0],coords[idxs,1],
-                linewidths=1, c=colormap[Y[idxs]], alpha=0.01)
+                linewidths=1, c=colormap[Y[idxs]], alpha=0.5)
 
-if 0:
-    # Graphs showing how no intention, intention, and reducer are distributed
-    x_grid,y_grid,z_grid = pickle.loads(open('../NorthJutlandPopDensity/NorthJutlandPopDensityGridded.pickle','rb').read())
+# Graphs showing how no intention, intention, and reducer are distributed
+# Both as global histograms and geographically
+# coords: Mx2 numpy array with location (longitude_deg,latitude_deg) of each individual
+# Y: M array with stage of change category for each individual 0=>NO intention, 1=>intention, 2=>reducer
+def plot_stages_of_change_distribution(coords,Y):
+    x_grid,y_grid,z_grid = pickle.loads(
+        open('../NorthJutlandPopDensity/NorthJutlandPopDensityGridded.pickle',
+             'rb').read())
     x_min, x_max = x_grid[0,0], x_grid[-1,0]
     y_min, y_max = y_grid[0,0], y_grid[0,-1]
     x_range = x_max - x_min
@@ -280,7 +251,6 @@ if 0:
 
     # make grid squares larger
     divs = 100
-    from scipy.interpolate import griddata
     _x_grid, _y_grid = np.mgrid[x_min:x_max:divs*1j, y_min:y_max:divs*1j]
     _z_grid = griddata((x_grid.flatten(),y_grid.flatten()),
                        z_grid.flatten(), (_x_grid, _y_grid),
@@ -344,8 +314,59 @@ if 0:
     plt.title('% population in state "Reducer" by area')
     plt.colorbar()
 
-# inhomogenous households
+# TODO inhomogenous households
 
-# bar plots of highly connected individuals (weak links)
+# TODO bar plots of highly connected individuals (weak links)
 
-# bar plots of highly connected individuals (strong links)
+# TODO bar plots of highly connected individuals (strong links)
+            
+if __name__ == '__main__':
+
+    # Read Parameters from command line
+    parser = argparse.ArgumentParser(description='CA model for spread of reductions in meat consumption in North Jutland, Denmark\n'\
+                                     'Outputs population distributions X and Y at final step, where\n'\
+                                     'X = [<#no ties>,<#only weak ties>,<#1-2 strong, no weak>, <#1-2 strong + weak>,<#3+ strong>]\n'\
+                                     'Y = [<#NO intention>,<#Intention>,<#Reducer>]')
+    parser.add_argument('-m','--mean_n_weak_ties', type=float, default=6.0,
+                        help='mean number of ties to co-diners outside of household')
+    parser.add_argument('-M','--modal_weak_tie_km', type=float, default=1.0,
+                        help='most common distance to co-diner outside of household')
+    parser.add_argument('-a', '--awareness_pc', type=float, default=30.0,
+                        help='%% of those with no ties to reducers who have at least an intention to reduce')
+    parser.add_argument('-f', '--facility_pc', type=float, default=30.33333,
+                        help='%% of those with no ties to reducers and at least an intention to reduce who are reducers')
+    parser.add_argument('-s','--p_update_logit_normal_sigma', type=float, default=0.5,
+                        help='describes how resistance to change is distributed'
+                        ', i.e. p_update[idx] is the proportion of timesteps that person identified by idx takes part in'
+                        '.  1 indicates every step, 0 indicates no steps.  logit(p_update) is normally distributed with mean 0.5.  This variable is the sd.:'
+                        '0-1.5 => p_update is unimodal, 1.5 => p_update is almost flat, >1.5 => p_update is bimodal')
+    parser.add_argument('-n', '--n_timesteps', type=int, default=20,
+                        help='Number of timesteps.  Timesteps are nominally 6 months but in reality defined by the assumption that mean(p_update)=0.5')
+    parser.add_argument('-i', '--interactive', action='store_true',
+                        help='generate plots rather than output results on command line')
+    args = parser.parse_args()
+
+    # Read in social graph (See ../NorthJutlandSocialGraph/README for file format)
+    filename = '../NorthJutlandSocialGraph/'\
+        f'NorthJutlandSocialGraph_{args.mean_n_weak_ties}_{args.modal_weak_tie_km}.pickle'
+    coords, edges, strong_tie = pickle.loads(open(filename,'rb').read())
+    M = coords.shape[0]
+
+    # Run the model
+    X,Y,X_vs_time,Y_vs_time = run_model(coords, edges, strong_tie,
+                                        args.awareness_pc, args.facility_pc,
+                                        args.p_update_logit_normal_sigma,
+                                        args.n_timesteps)
+
+    # Output the results
+    if args.interactive:
+        shell = InteractiveShellEmbed()
+        shell.enable_matplotlib()
+        plt.ion()
+        plot_vs_time(X_vs_time, Y_vs_time)
+#        plot_scatter_diagram_on_map(coords,Y)
+        plot_stages_of_change_distribution(coords,Y)
+        shell()
+    else:
+        print(f'X={X_vs_time[-1].tolist()}\nY={Y_vs_time[-1].tolist()}')
+
