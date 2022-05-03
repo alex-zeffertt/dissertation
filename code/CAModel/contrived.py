@@ -104,18 +104,22 @@ if __name__ == '__main__':
 
     plt.ion()
 
+    stride = 20
+    n_timesteps = 160
+    n_figures = 8
     results = run_model(n_rows=100,n_cols=100,
-                        p=0.20, q=0.05, r=0.035, weak_strong_ratio=.99,
-                        n_timesteps=1600,
-                        return_history=True, history_stride=200)
+                        p=0.5, q=0.1, r=0.05, weak_strong_ratio=.99,
+                        n_timesteps=n_timesteps,
+                        return_history=True, history_stride=stride)
 
     fig, axes = plt.subplots(nrows=2,ncols=4,
                              gridspec_kw={'width_ratios':[1,1,1,1.065]})
-    plt.suptitle('Contrived CA model over 1400 generations\n\n')
+    plt.suptitle(f'Contrived CA model over {(n_figures-1)*stride}'
+                 ' generations\n\n')
     
-    for i in range(8):
+    for i in range(n_figures):
 
-        n_timesteps = 200*i
+        n_timesteps = stride*i
         Y = results[i]
         
         cmap = matplotlib.cm.get_cmap("YlGn", 3)
