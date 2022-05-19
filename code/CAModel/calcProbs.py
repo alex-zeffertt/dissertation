@@ -46,10 +46,11 @@ N_SOCIAL = 5
 # We also know by substitution when i = j = 0 that C_0 = 0.
 # Therefore, by substitution we get also that beta_0j = 0
 
+# Best estimate for beta
 beta = np.array([
     [0.0, 0.0,  0.0,  0.0,  0.0],
     [0.0, 0.69, 2.78, 3.81, 0.65],   # Intention vs NO intention
-    [0.0, 0.73, 2.54, 3.19, 3.30]])  # Reducer vs intention
+    [0.0, 0.73, 2.54, 3.19, 3.30]])  # Reducer   vs NO intention
 
 # If we know C_1 and C_2 we can work out P(Y = i | X = j) since
 # (from https://en.wikipedia.org/wiki/Multinomial_logistic_regression)

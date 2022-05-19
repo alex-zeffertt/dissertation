@@ -19,7 +19,7 @@ def run_model(n_rows, n_cols,
     beta = np.array([
         [0.0, 0.0,  0.0,  0.0,  0.0],
         [0.0, 0.69, 2.78, 3.81, 0.65],   # Intention vs NO intention
-        [0.0, 0.73, 2.54, 3.19, 3.30]])  # Reducer vs intention
+        [0.0, 0.73, 2.54, 3.19, 3.30]])  # Reducer   vs NO intention
 
     # Calculate the NOintention:intention:reducer split for case X = 0 (no ties)
     pop_not_intending_with_no_ties = 100 - awareness_pc

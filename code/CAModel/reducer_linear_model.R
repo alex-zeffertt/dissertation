@@ -162,10 +162,10 @@ summary(lm(logit_reducer ~
 #Formula is therefore
 #$$
 # r = 100 logit^{-1}(
-#    0.96 logit(f) - 0.068 logit(f)^2 +
-#    0.47 logit(a) - 0.12 logit(a)^2 +
-#   -0.059 s +
-#    0.011 m)
+#    1.1 logit(f)  - 0.088 logit(f)^2 +
+#    0.53 logit(a) - 0.16 logit(a)^2 +
+#   -0.047 s +
+#    0.021 m)
 #$$
 #where
 #$$

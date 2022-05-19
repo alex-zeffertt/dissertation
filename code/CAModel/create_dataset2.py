@@ -1,4 +1,4 @@
-# Run ./model_complete.py with every different combination of inputs and build csv output
+# Run ./model_complete.py with random different combination of inputs and build csv output
 import numpy as np
 from subprocess import check_output
 
