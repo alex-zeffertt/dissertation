@@ -37,7 +37,8 @@ def logit_normal_pdf(x,mu,sigma):
 def run_model(coords, edges, strong_tie,          # Defines social graph (see ../NorthJutlandSocialGraph/README)
               awareness_pc, facility_pc,          # Global parameters affecting CA model
               p_update_logit_normal_sigma,        # Describes the distribution of resistance to change
-              n_timesteps):                       # How much simulated time to run model for
+              n_timesteps,                        # How much simulated time to run model for
+              randomize_beta = False):
 
     # Calculate P[i,j] := P(Y = i | X = j) where
     #
@@ -67,7 +68,29 @@ def run_model(coords, edges, strong_tie,          # Defines social graph (see ..
     beta = np.array([
         [0.0, 0.0,  0.0,  0.0,  0.0],
         [0.0, 0.69, 2.78, 3.81, 0.65],   # Intention vs NO intention
-        [0.0, 0.73, 2.54, 3.19, 3.30]])  # Reducer vs intention
+        [0.0, 0.73, 2.54, 3.19, 3.30]])  # Reducer   vs NO intention
+
+    if randomize_beta:
+        # 95% CI for beta (NB: beta is the geometric mean of min and max)
+        beta_min = np.array([
+            [0.0, 0.0,  0.0,  0.0,  0.0],
+            [0.0, 0.27, 1.47, 1.70, 0.16],
+            [0.0, 0.36, 1.55, 1.65, 1.56]])
+        beta_max = np.array([
+            [0.0, 0.0,  0.0,  0.0,  0.0],
+            [0.0, 1.81, 5.26, 8.57, 2.65],
+            [0.0, 1.45, 4.16, 6.17, 6.98]])
+
+        # Calculate sigma for each log(beta[i,j]) distribution
+        log_beta_sigma = np.zeros(beta.shape, dtype=float)
+        log_beta_sigma[1:,1:] = (np.log(beta_max[1:,1:]) - \
+                                 np.log(beta[1:,1:]))/1.96
+
+        # Choose a random beta from the distributions for beta[i,j]
+        log_beta_delta = np.random.normal(np.zeros(15),
+                                          log_beta_sigma.flatten(),15)
+        log_beta_delta.shape = (3,5)
+        beta *= np.exp(log_beta_delta)
     
     # Calculate the NOintention:intention:reducer split for case X = 0 (no ties)
     pop_not_intending_with_no_ties = 100 - awareness_pc
@@ -342,6 +365,8 @@ if __name__ == '__main__':
                         '0-1.5 => p_update is unimodal, 1.5 => p_update is almost flat, >1.5 => p_update is bimodal')
     parser.add_argument('-n', '--n_timesteps', type=int, default=20,
                         help='Number of timesteps.  Timesteps are nominally 6 months but in reality defined by the assumption that mean(p_update)=0.5')
+    parser.add_argument('-r', '--randomize_beta', action='store_true',
+                        help='Use randomized coefficients from H&L model rather than best estimates')
     parser.add_argument('-i', '--interactive', action='store_true',
                         help='generate plots rather than output results on command line')
     args = parser.parse_args()
@@ -356,7 +381,7 @@ if __name__ == '__main__':
     X,Y,X_vs_time,Y_vs_time = run_model(coords, edges, strong_tie,
                                         args.awareness_pc, args.facility_pc,
                                         args.p_update_logit_normal_sigma,
-                                        args.n_timesteps)
+                                        args.n_timesteps, args.randomize_beta)
 
     # Output the results
     if args.interactive:
