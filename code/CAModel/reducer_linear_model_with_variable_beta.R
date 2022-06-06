@@ -24,7 +24,8 @@ jitter <- function(x) {
     return (x + rnorm(length(x),0,sd))
 }
 
-dev.new()
+png(file='sensitivity_linear_model1.png')
+#dev.new()
 par(mfrow=c(3,2))
 plot(percent_reducer ~ jitter(mean_n_weak_ties), data=df)
 plot(percent_reducer ~ jitter(modal_weak_tie_km), data=df)
@@ -32,30 +33,33 @@ plot(percent_reducer ~ awareness_pc, data=df)
 plot(percent_reducer ~ facility_pc, data=df)
 plot(percent_reducer ~ p_update_logit_normal_sigma, data=df)
 par(mfrow=c(1,1))
+dev.off()
 
 # There is some obvious relation with awareness_pc and facility_pc.
 # However, it doesn't look particularly linear.  Noting that percentages
 # are bounded at 0 and 100 it makes sense to replace these with logit values,
 # i.e. log ratios
 
-dev.new()
-par(mfrow=c(3,2))
-plot(logit(percent_reducer/100) ~ jitter(mean_n_weak_ties), data=df)
-plot(logit(percent_reducer/100) ~ jitter(modal_weak_tie_km), data=df)
-plot(logit(percent_reducer/100) ~ logit(awareness_pc/100),data=df)
-plot(logit(percent_reducer/100) ~ logit(facility_pc/100),data=df)
-plot(logit(percent_reducer/100) ~ p_update_logit_normal_sigma,data=df)
-hist(logit(df$percent_reducer/100), xlab='logit_reducer', main='Reducers')
-par(mfrow=c(1,1))
-
-# That looks more promising
-# Note that dependent var logit_intention is more or less normally distributed.
-
 # Create alternative variables for the logit transformed percentages
 df$logit_reducer   <- logit(df$percent_reducer/100)
 df$logit_intention <- logit(df$percent_intention/100)
 df$logit_awareness <- logit(df$awareness_pc/100)
 df$logit_facility  <- logit(df$facility_pc/100)
+
+png(file='sensitivity_linear_model2.png')
+#dev.new()
+par(mfrow=c(3,2))
+plot(logit_reducer ~ jitter(mean_n_weak_ties), data=df)
+plot(logit_reducer ~ jitter(modal_weak_tie_km), data=df)
+plot(logit_reducer ~ logit_awareness,data=df)
+plot(logit_reducer ~ logit_facility,data=df)
+plot(logit_reducer ~ p_update_logit_normal_sigma,data=df)
+hist(df$logit_reducer, xlab='logit_reducer', main='Reducers')
+par(mfrow=c(1,1))
+dev.off()
+
+# That looks more promising
+# Note that dependent var logit_intention is more or less normally distributed.
 
 # Use scaled independent variables so that we can see the relative effect of
 # each variable.
@@ -184,13 +188,15 @@ summary(lm(logit_reducer ~
 # Create plot to show the reliability of the model and check assumptions (e.g.
 # normally distributed residuals)
 df$predicted <- predict(mod, df)
-dev.new()
+png(file='sensitivity_linear_model3.png')
+#dev.new()
 par(mfrow=c(2,2))
 plot(mod, which=1)
 plot(mod, which=2)
 plot(logit_reducer ~ predicted, data=df, main='Reliability of linear model')
 hist(residuals(mod))
 par(mfrow=c(1,1))
+dev.off()
 
 max(cooks.distance(mod))
 # This is well below 1 so no problem

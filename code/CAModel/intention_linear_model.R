@@ -19,11 +19,12 @@ dim(df)
 
 # Jitter the x axis for plots where we only have a discrete levels in the data
 jitter <- function(x) {
-    sd <- 0.3 * min(diff(sort(unique(x))))
+    sd <- 0.25 * min(diff(sort(unique(x))))
     return (x + rnorm(length(x),0,sd))
 }
 
-dev.new()
+png(file='intention_linear_model1.png')
+#dev.new()
 par(mfrow=c(3,2))
 plot(percent_intention ~ jitter(mean_n_weak_ties), data=df)
 plot(percent_intention ~ jitter(modal_weak_tie_km), data=df)
@@ -31,33 +32,36 @@ plot(percent_intention ~ awareness_pc, data=df)
 plot(percent_intention ~ facility_pc, data=df)
 plot(percent_intention ~ p_update_logit_normal_sigma, data=df)
 par(mfrow=c(1,1))
+dev.off()
 
 # There is some obvious relation with awareness_pc and facility_pc.
 # However, it doesn't look particularly linear.  Noting that percentages
 # are bounded at 0 and 100 it makes sense to replace these with logit values,
 # i.e. log ratios
 
-dev.new()
+# Create alternative variables for the logit transformed percentages
+df$logit_reducer   <- logit(df$percent_reducer/100)
+df$logit_intention <- logit(df$percent_intention/100)
+df$logit_awareness <- logit(df$awareness_pc/100)
+df$logit_facility  <- logit(df$facility_pc/100)
+
+png(file='intention_linear_model2.png')
+#dev.new()
 par(mfrow=c(3,2))
-plot(logit(percent_intention/100) ~ jitter(mean_n_weak_ties), data=df)
-plot(logit(percent_intention/100) ~ jitter(modal_weak_tie_km), data=df)
-plot(logit(percent_intention/100) ~ logit(awareness_pc/100),data=df)
-plot(logit(percent_intention/100) ~ logit(facility_pc/100),data=df)
-plot(logit(percent_intention/100) ~ p_update_logit_normal_sigma,data=df)
-hist(logit(df$percent_intention/100), xlab='logit_intention', main='Intention')
+plot(logit_intention ~ jitter(mean_n_weak_ties), data=df)
+plot(logit_intention ~ jitter(modal_weak_tie_km), data=df)
+plot(logit_intention ~ logit_awareness,data=df)
+plot(logit_intention ~ logit_facility,data=df)
+plot(logit_intention ~ p_update_logit_normal_sigma,data=df)
+hist(df$logit_intention, xlab='logit_intention', main='Intention')
 par(mfrow=c(1,1))
+dev.off()
 
 # That looks more promising.
 # This is similar to with "percent_reducer" but the correlation with
 # logit(facility_pc/100) is negative (because higher facility means it's
 # easier to transition from "intention" to "reducer"
 # Note that dependent var logit_intention is more or less normally distributed.
-
-# Create alternative variables for the logit transformed percentages
-df$logit_reducer   <- logit(df$percent_reducer/100)
-df$logit_intention <- logit(df$percent_intention/100)
-df$logit_awareness <- logit(df$awareness_pc/100)
-df$logit_facility  <- logit(df$facility_pc/100)
 
 # Use scaled independent variables so that we can see the relative effect of
 # each variable.
@@ -187,13 +191,15 @@ summary(lm(logit_intention ~
 # Create plot to show the reliability of the model and check assumptions (e.g.
 # normally distributed residuals)
 df$predicted <- predict(mod, df)
-dev.new()
+png(file='intention_linear_model3.png')
+#dev.new()
 par(mfrow=c(2,2))
 plot(mod, which=1)
 plot(mod, which=2)
 plot(logit_intention ~ predicted, data=df, main='Reliability of linear model')
 hist(residuals(mod))
 par(mfrow=c(1,1))
+dev.off()
 
 # This all looks good.  residuals normally distributed.  QvsQ chart shows normal
 # over -3 to +3 quantiles range.  Some bunching of residuals vs preducted value,
