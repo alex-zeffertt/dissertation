@@ -15,6 +15,31 @@ def logit_normal_pdf(x,mu,sigma):
     return (1/(sigma*np.sqrt(2*np.pi)))*\
         (1/(x*(1-x)))*np.exp(-(np.log(x/(1-x)))**2/(2*sigma**2))
 
+# Calculate the probabilities P[i,j] of Y=i given X=j and return the 3x5 numpy array P
+def calc_probs(beta, awareness_pc, facility_pc):
+    """ 
+    beta:          coefficients from Hielkema and Lund study
+    awareness_pc:  100*Pr(Y>0|X=0)              = percentage no-ties population who intending to reduce or reducing
+    facility_pc:   100*Pr(Y=2|X=0)/Pr(Y>0|X=0)  = percentage "aware" no-ties population reducing
+    returns:       P                              where P[i,j] = Pr(Y=i|X=j)
+    """
+
+    # Calculate the NOintention:intention:reducer split for case X = 0 (no ties)
+    pop_not_intending_with_no_ties = 100 - awareness_pc
+    pop_reducing_with_no_ties = awareness_pc * facility_pc / 100
+    pop_intending_with_no_ties = 100 - \
+        pop_not_intending_with_no_ties - \
+        pop_reducing_with_no_ties
+
+    # Calculate P[:,:] as per calcProbs
+    percent = [pop_not_intending_with_no_ties,
+               pop_intending_with_no_ties,
+               pop_reducing_with_no_ties]
+    C = np.log(np.array([percent])/percent[0])
+    C = C.transpose()
+    P = np.exp(C + beta)/np.exp(C + beta).sum(axis=0)
+    return P
+
 # Run the model using the parameters given
 # Returns the tuple (X,Y,X_vs_time,Y_vs_time), where
 #
@@ -38,7 +63,8 @@ def run_model(coords, edges, strong_tie,          # Defines social graph (see ..
               awareness_pc, facility_pc,          # Global parameters affecting CA model
               p_update_logit_normal_sigma,        # Describes the distribution of resistance to change
               n_timesteps,                        # How much simulated time to run model for
-              randomize_beta = False):
+              randomize_beta = False,
+              feedback = None):
 
     # Calculate P[i,j] := P(Y = i | X = j) where
     #
@@ -91,21 +117,9 @@ def run_model(coords, edges, strong_tie,          # Defines social graph (see ..
                                           log_beta_sigma.flatten(),15)
         log_beta_delta.shape = (3,5)
         beta *= np.exp(log_beta_delta)
-    
-    # Calculate the NOintention:intention:reducer split for case X = 0 (no ties)
-    pop_not_intending_with_no_ties = 100 - awareness_pc
-    pop_reducing_with_no_ties = awareness_pc * facility_pc / 100
-    pop_intending_with_no_ties = 100 - \
-        pop_not_intending_with_no_ties - \
-        pop_reducing_with_no_ties
-    
-    # Calculate P[:,:] as per calcProbs
-    percent = [pop_not_intending_with_no_ties,
-               pop_intending_with_no_ties,
-               pop_reducing_with_no_ties]
-    C = np.log(np.array([percent])/percent[0])
-    C = C.transpose()
-    P = np.exp(C + beta)/np.exp(C + beta).sum(axis=0)
+
+    # Calculate the probabilities for each stage of change given the social network
+    P = calc_probs(beta, awareness_pc, facility_pc)
 
     # Provide a quick lookup for finding peers
     _, peers_count = np.unique(edges.flatten(), return_counts=True)
@@ -194,6 +208,13 @@ def run_model(coords, edges, strong_tie,          # Defines social graph (see ..
             # Remainers change diet randomly using probs for social n/w categegory j
             prob_diets = P[:,j]
             Y[idxs] = np.random.choice(n_diet_categories, len(idxs), p=prob_diets)
+
+        # Update probabilities using feedback term
+        if feedback != None:
+            reducer_pc = 100*(Y==2).sum()/M
+            P = calc_probs(beta,
+                           awareness_pc + feedback*(reducer_pc/100.)*(100-awareness_pc),
+                           facility_pc  + feedback*(reducer_pc/100.)*(100-facility_pc))
 
     # Return the tuple
     return (X,Y,X_vs_time,Y_vs_time)
@@ -369,6 +390,8 @@ if __name__ == '__main__':
                         help='Use randomized coefficients from H&L model rather than best estimates')
     parser.add_argument('-i', '--interactive', action='store_true',
                         help='generate plots rather than output results on command line')
+    parser.add_argument('-F', '--feedback', type=float, default=None,
+                        help='%% of those with no ties to reducers who have at least an intention to reduce')
     args = parser.parse_args()
 
     # Read in social graph (See ../NorthJutlandSocialGraph/README for file format)
@@ -381,7 +404,7 @@ if __name__ == '__main__':
     X,Y,X_vs_time,Y_vs_time = run_model(coords, edges, strong_tie,
                                         args.awareness_pc, args.facility_pc,
                                         args.p_update_logit_normal_sigma,
-                                        args.n_timesteps, args.randomize_beta)
+                                        args.n_timesteps, args.randomize_beta, args.feedback)
 
     # Output the results
     if args.interactive:
