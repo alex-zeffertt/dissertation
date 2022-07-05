@@ -63,8 +63,15 @@ def run_model(coords, edges, strong_tie,          # Defines social graph (see ..
               awareness_pc, facility_pc,          # Global parameters affecting CA model
               p_update_logit_normal_sigma,        # Describes the distribution of resistance to change
               n_timesteps,                        # How much simulated time to run model for
-              randomize_beta = False,
-              feedback = None):
+              randomize_beta = False,             # choose random values for constants in H&L model based on CIs
+              feedback = None,                    # 0 to 1: how much awareness_pc and facility_pc depend on current percent_reducer
+              non_household_strong_pc = 0):       # percentage of non-houshold ties which are "strong"
+
+    # At the moment inter-household ties are all weak and intra household ties all strong
+    # Update some of the inter-household ties
+    weak_tie_idxs = (strong_tie == False).nonzero()[0]
+    strong_tie[weak_tie_idxs] = np.array(
+        np.random.binomial(1,p=non_household_strong_pc/100.,size=len(weak_tie_idxs)), dtype=bool)
 
     # Calculate P[i,j] := P(Y = i | X = j) where
     #
@@ -392,6 +399,8 @@ if __name__ == '__main__':
                         help='generate plots rather than output results on command line')
     parser.add_argument('-F', '--feedback', type=float, default=None,
                         help='%% of those with no ties to reducers who have at least an intention to reduce')
+    parser.add_argument('-S', '--non_household_strong_pc', type=float, default=0,
+                        help='%% of those with inter household ties which are strong')
     args = parser.parse_args()
 
     # Read in social graph (See ../NorthJutlandSocialGraph/README for file format)
@@ -404,7 +413,7 @@ if __name__ == '__main__':
     X,Y,X_vs_time,Y_vs_time = run_model(coords, edges, strong_tie,
                                         args.awareness_pc, args.facility_pc,
                                         args.p_update_logit_normal_sigma,
-                                        args.n_timesteps, args.randomize_beta, args.feedback)
+                                        args.n_timesteps, args.randomize_beta, args.feedback, args.non_household_strong_pc)
 
     # Output the results
     if args.interactive:
