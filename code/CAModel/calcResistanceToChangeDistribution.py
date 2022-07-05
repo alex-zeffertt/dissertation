@@ -54,9 +54,9 @@ for sigma in np.arange(.25,2,.25):
     plt.plot(x, pdf(sigma), label=f'$\sigma={sigma}$')
 
 plt.legend()
-plt.ylabel('$\\frac{dp}{dx}$', rotation=0)
-plt.xlabel("x = individual's probability of considering change in one time step")
-plt.title('Distribution of prob(change_considered_one_timestep) using\n$\\frac{dp}{dy}$ = N(0,$\sigma$)\ny = logit(x)')
+plt.ylabel('$\\frac{d\.Pr(p)}{dp}$', rotation=0)
+plt.xlabel("p = individual's probability of considering change in one time step")
+plt.title('Distribution of $p$ given\n$\\frac{d\.Pr(x)}{dx}$ = N(0,$\sigma$)\nx = logit(p)')
 fig.subplots_adjust(top=fig.subplotpars.top * .95)
 plt.ion()
 plt.show()
