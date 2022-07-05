@@ -17,7 +17,8 @@ def run_model(n_rows, n_cols,
               weak_strong_ratio,
               n_timesteps,
               return_history=False,
-              history_stride=1):
+              history_stride=1,
+              return_timestamp=False): # timestamp of last change
 
     # Create grid on which CA works
     x_grid, y_grid = np.mgrid[0:1:n_rows*1j, 0:1:n_cols*1j]
@@ -28,6 +29,7 @@ def run_model(n_rows, n_cols,
     # 2 : Reducer
     M = n_rows*n_cols
     Y = np.zeros(M, dtype=int)
+    timestamp = np.zeros(M, dtype=int)
 
     # Build an array showing which peers are strong and which are weak ties
     peers_strong = np.zeros((M,4),dtype=int)
@@ -45,8 +47,10 @@ def run_model(n_rows, n_cols,
     peers_weak[:,2] = idxs[(row_idxs+1)%n_rows][:,(col_idxs-1)%n_cols].flatten()
     peers_weak[:,3] = idxs[(row_idxs+1)%n_rows][:,(col_idxs+1)%n_cols].flatten()
 
-    Y[idxs[35:45][:,35:45].flatten()] = 2
-    Y[idxs[55:65][:,55:65].flatten()] = 2
+    #Y[idxs[35:45][:,35:45].flatten()] = 2
+    #Y[idxs[55:65][:,55:65].flatten()] = 2
+    Y = np.random.choice([0,1,2],M,p=[.9,.09,.01])
+    
     if return_history:
         results = [np.reshape(Y.copy(),(n_rows,n_cols))]
 
@@ -78,22 +82,29 @@ def run_model(n_rows, n_cols,
         idxs = (Y == 0).nonzero()[0]
         do_change = np.random.binomial(1,P[idxs])
         idxs = idxs[do_change == 1]
+        timestamp[idxs] = tstep + 1
         Y[idxs] = 1
 
         # Changes from 1 to 2 (Intention to Reducer)
         idxs = (Y == 1).nonzero()[0]
         do_change = np.random.binomial(1,Q[idxs])
         idxs = idxs[do_change == 1]
+        timestamp[idxs] = tstep + 1
         Y[idxs] = 2
 
         # Changes from 2 to 0 (relapse: Reducer to NO intention)
         idxs = (Y == 2).nonzero()[0]
         do_change = np.random.binomial(1,R[idxs])
         idxs = idxs[do_change == 1]
+        timestamp[idxs] = tstep + 1
         Y[idxs] = 0
         
         if return_history and (tstep + 1) % history_stride == 0:
             results.append(np.reshape(Y.copy(),(n_rows,n_cols)))
+
+    if return_timestamp:
+        timestamp.shape = (n_rows, n_cols)
+        return timestamp,Y
 
     # return the stuff
     Y.shape = (n_rows, n_cols)
@@ -104,32 +115,14 @@ if __name__ == '__main__':
 
     plt.ion()
 
-    stride = 20
-    n_timesteps = 160
-    n_figures = 8
-    results = run_model(n_rows=100,n_cols=100,
-                        p=0.5, q=0.1, r=0.05, weak_strong_ratio=.99,
+    n_timesteps = 1000
+    timestamps,Y = run_model(n_rows=2*100,n_cols=2*100,
+                        p=0.3, q=0.1, r=0.05, weak_strong_ratio=.5,
                         n_timesteps=n_timesteps,
-                        return_history=True, history_stride=stride)
+                        return_timestamp=True)
 
-    fig, axes = plt.subplots(nrows=2,ncols=4,
-                             gridspec_kw={'width_ratios':[1,1,1,1.065]})
-    plt.suptitle(f'Contrived CA model over {(n_figures-1)*stride}'
-                 ' generations\n\n')
-    
-    for i in range(n_figures):
-
-        n_timesteps = stride*i
-        Y = results[i]
-        
-        cmap = matplotlib.cm.get_cmap("YlGn", 3)
-        plt.sca(axes[i//4][i%4])
-        im = plt.imshow(Y, cmap=cmap, interpolation='nearest')
-        plt.xticks([])
-        plt.yticks([])
-        plt.title(f"{n_timesteps} steps")
-        if i%4 == 3:
-            divider = make_axes_locatable(plt.gca())
-            cax = divider.append_axes("right", size="5%", pad=0.05)
-            cb = plt.colorbar(im, cax=cax, ticks=[.25,1,1.75])
-            cb.ax.set_yticklabels(['   NO\nintention','Intention','Reducer'])
+    im = plt.imshow(timestamps, cmap='coolwarm_r', interpolation='nearest')
+    plt.xticks([])
+    plt.yticks([])
+    cb = plt.colorbar(im)
+    plt.title('Generation turned meat-reducer')
